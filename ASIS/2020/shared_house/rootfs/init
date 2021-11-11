@@ -1,0 +1,31 @@
+#!/bin/sh
+# devtmpfs does not get automounted for initramfs
+/bin/mount -t proc proc /proc
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t devtmpfs devtmpfs /dev
+/sbin/mdev -s
+mkdir -p /dev/pts
+mount -vt devpts -o gid=4,mode=620 none /dev/pts
+chmod 666 /dev/ptmx
+echo 1 > /proc/sys/kernel/kptr_restrict
+echo 1 > /proc/sys/kernel/dmesg_restrict
+
+chown root:root /flag
+chmod 400 /flag
+insmod /root/note.ko
+mknod -m 666 /dev/note c `grep note /proc/devices | awk '{print $1;}'` 0
+
+echo -e "\nBoot took $(cut -d ' ' -f1 /proc/uptime) seconds\n"
+
+cat /proc/kallsyms|grep "\]"
+cat /proc/kallsyms|grep "kmalloc"
+cat /proc/kallsyms|grep "kfree"
+cat /proc/kallsyms|grep "copy_from_user"
+cat /proc/kallsyms|grep "copy_to_user"
+cat /proc/kallsyms|grep "prepare_kernel_cred"
+cat /proc/kallsyms|grep "commit_creds"
+setsid /bin/cttyhack setuidgid 1000 /bin/sh
+
+umount /proc
+umount /sys
+poweroff -d 0 -f
