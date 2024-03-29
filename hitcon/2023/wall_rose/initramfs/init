@@ -1,0 +1,32 @@
+#!/bin/sh
+
+chown 0:0 -R /
+chown 1000:1000 -R /home/user
+chown 0:0 /home/user/flag
+chmod 0 /home/user/flag
+chmod 04755 /bin/busybox
+
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t tmpfs tmpfs /tmp
+mount -t devtmpfs none /dev
+mkdir -p /dev/pts
+mount -vt devpts -o gid=4,mode=620 none /dev/pts
+
+/sbin/mdev -s
+
+ifup eth0 >& /dev/null
+
+echo 1 > /proc/sys/kernel/dmesg_restrict
+echo 2 > /proc/sys/kernel/kptr_restrict
+
+cat /etc/banner
+
+insmod /home/user/rose.ko
+chmod 0666 /dev/rose
+
+cd /home/user
+
+setsid cttyhack setuidgid 1000 sh
+
+poweroff -f

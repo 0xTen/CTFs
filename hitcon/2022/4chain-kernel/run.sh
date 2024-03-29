@@ -1,7 +1,6 @@
 #!/bin/bash
 
 exec timeout 300 qemu-system-x86_64 \
-    -enable-kvm \
     -m 128M \
     -nographic \
     -kernel ./bzImage \
